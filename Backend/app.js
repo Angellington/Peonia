@@ -1,6 +1,7 @@
 //Import express 
 const express = require('express');
 const app = express();
+const cors = require('cors')
 
 // libs
 const path = require('path');
@@ -23,6 +24,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors({
+  origin: "http://localhost:5173" 
+}));
 
 // rotas versionadas
 const apiRouter = express.Router();
