@@ -23,7 +23,7 @@ const Posts = sequelize.define("Post", {
     allowNull: false,
     validate: {
       notEmpty: true,          
-      len: [6, 100],           
+      len: [4, 100],           
     },
   },
   image: {

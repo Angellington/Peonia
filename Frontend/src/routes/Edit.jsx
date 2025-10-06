@@ -1,20 +1,37 @@
 import { Box, Button, Paper } from "@mui/material";
 import { useForm, FormProvider } from "react-hook-form";
 import { RHFTextField } from "../components/Textfield";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import postFetch from "../api/postFetch";
-import { Navigate, redirect, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
 
-const NewPost = () => {
+const Edit = () => {
+  const { id } = useParams(); // pega o ID do post
   const methods = useForm();
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-   const postMutation = useMutation({
+  // ✅ Buscar dados do post atual para preencher o formulário
+  const { data: post, isLoading } = useQuery({
+    queryKey: ["posts", id],
+    queryFn: () => postFetch.get(`/${id}`).then(res => res.data),
+    staleTime: 1000 * 60,
+  });
+
+  // Atualiza o formulário quando os dados do post forem carregados
+  useEffect(() => {
+    if (post) {
+      methods.reset(post);
+    }
+  }, [post, methods]);
+
+  // Mutação de edição
+  const postMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await postFetch.post("", data);
+      const response = await postFetch.put(`/${id}`, data); // inclui o ID na requisição
       return response.data;
     },
     onSuccess: () => {
@@ -22,49 +39,46 @@ const NewPost = () => {
     },
   });
 
-
   const onSubmit = async (data) => {
     const confirm = await Swal.fire({
       title: "Confirmar envio?",
-      text: "Deseja criar este novo post?",
+      text: "Deseja editar este post?",
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Sim, criar post",
+      confirmButtonText: "Sim, editar post",
       cancelButtonText: "Cancelar",
       reverseButtons: true,
     });
 
     if (!confirm.isConfirmed) return;
 
-    // Mostra um toast de loading
-    const toastId = toast.loading("Enviando post...");
+    const toastId = toast.loading("Editando post...");
 
     postMutation.mutate(data, {
       onSuccess: () => {
-        toast.success("Post criado com sucesso! 🌸", { id: toastId, duration: 2500 });
+        toast.success("Post editado com sucesso! 🌸", { id: toastId, duration: 2500 });
         Swal.fire({
           icon: "success",
-          title: "Post criado!",
-          text: "Seu post foi publicado com sucesso.",
+          title: "Post editado!",
+          text: "Seu post foi editado com sucesso.",
           confirmButtonText: "Ok",
         }).then(() => navigate("/"));
       },
       onError: (error) => {
-        toast.error(`Erro ao criar post: ${error.message || "Tente novamente."}`, {
+        toast.error(`Erro ao editar post: ${error.message || "Tente novamente."}`, {
           id: toastId,
           duration: 3000,
         });
         Swal.fire({
           icon: "error",
           title: "Erro!",
-          text: "Não foi possível criar o post.",
+          text: "Não foi possível editar o post.",
         });
       },
     });
   };
 
-
-
+  if (isLoading) return <h2>Carregando dados do post...</h2>;
 
   return (
     <Box
@@ -72,8 +86,8 @@ const NewPost = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "80vh", 
-        bgcolor: "background.default", 
+        minHeight: "80vh",
+        bgcolor: "background.default",
         p: 2,
       }}
     >
@@ -94,13 +108,9 @@ const NewPost = () => {
           >
             <RHFTextField name="title" label="Título" fullWidth />
             <RHFTextField name="message" label="Mensagem" fullWidth />
-            <RHFTextField
-              name="deleteCode"
-              label="Código de Edição"
-              fullWidth
-            />
+            <RHFTextField name="deleteCode" label="Código de Edição" fullWidth />
             <Button type="submit" variant="contained" size="large">
-              Enviar
+              Salvar Alterações
             </Button>
           </Paper>
         </form>
@@ -109,4 +119,4 @@ const NewPost = () => {
   );
 };
 
-export default NewPost;
+export default Edit;

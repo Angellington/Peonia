@@ -33,6 +33,19 @@ router.post("/", async (req, res) => {
     }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const post = await Posts.findByPk(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: "Post não encontrado" });
+    }
+    res.json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar post" });
+  }
+});
+
 router.put("/:id", async(req, res) => {
     try {
         const { title, message, deleteCode, image } = req.body;

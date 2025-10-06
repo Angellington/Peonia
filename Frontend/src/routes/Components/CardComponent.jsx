@@ -3,7 +3,10 @@ import { Paper, Box, Avatar, Typography, IconButton, Stack } from '@mui/material
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const CardComponent = ({ data }) => {
+const CardComponent = ({ data, handleDelete, handleEdit }) => {
+
+
+
   return (
     <Paper
       elevation={4}
@@ -44,11 +47,11 @@ const CardComponent = ({ data }) => {
           alignSelf: { xs: 'flex-end', sm: 'center' },
         }}
       >
-        <IconButton color="primary">
+        <IconButton color="primary" onClick={() => handleEdit(data.id, data.deleteCode)}>
           <EditIcon />
         </IconButton>
-        <IconButton color="error">
-          <DeleteIcon />
+        <IconButton color="error" onClick={() => handleDelete(data.id, data.deleteCode)}>
+          <DeleteIcon/>
         </IconButton>
       </Stack>
     </Paper>
