@@ -6,7 +6,7 @@ const router = express.Router();
 router.get("/", async (req, res) => {
     try {
         const posts = await Posts.findAll({
-            order: [["id", "ASC"]]
+            order: [["id", "DESC"]]
         });
         res.json(posts);
     } catch (err) {
