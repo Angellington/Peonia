@@ -31,7 +31,7 @@ function App() {
                 gap: 2,
               }}
             >
-              <Typography variant="h3">FLORES DE PEÔNIA</Typography>
+              <Typography variant="h3">TSUMIKI 🌙 </Typography>
 
               <Box
                 sx={{

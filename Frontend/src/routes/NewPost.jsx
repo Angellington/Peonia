@@ -1,4 +1,4 @@
-import { Box, Button, Paper } from "@mui/material";
+import { Box, Button, Input, Paper } from "@mui/material";
 import { useForm, FormProvider } from "react-hook-form";
 import { RHFTextField } from "../components/Textfield";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import postFetch from "../api/postFetch";
 import { Navigate, redirect, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
+import InputImage from "../components/InputImage";
 
 const NewPost = () => {
   const methods = useForm();
@@ -99,6 +100,9 @@ const NewPost = () => {
               label="Código de Edição"
               fullWidth
             />
+            <InputImage id="image" name="image" required/>
+
+
             <Button type="submit" variant="contained" size="large">
               Enviar
             </Button>
