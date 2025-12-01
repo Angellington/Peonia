@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
+import InputImage from "../components/InputImage";
 
 const Edit = () => {
   const { id } = useParams(); // pega o ID do post
@@ -109,6 +110,8 @@ const Edit = () => {
             <RHFTextField name="title" label="Título" fullWidth />
             <RHFTextField name="message" label="Mensagem" fullWidth />
             <RHFTextField name="deleteCode" label="Código de Edição" fullWidth />
+            <InputImage id="image" name="imageBase64" required/>
+
             <Button type="submit" variant="contained" size="large">
               Salvar Alterações
             </Button>

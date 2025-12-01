@@ -82,6 +82,7 @@ const NewPost = () => {
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
           style={{ width: "100%", maxWidth: 500 }}
+          encType="multipart/form-data"
         >
           <Paper
             elevation={3}
@@ -100,7 +101,7 @@ const NewPost = () => {
               label="Código de Edição"
               fullWidth
             />
-            <InputImage id="image" name="image" required/>
+            <InputImage id="image" name="imageBase64" required/>
 
 
             <Button type="submit" variant="contained" size="large">
