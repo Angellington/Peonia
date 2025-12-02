@@ -10,10 +10,11 @@ import InputImage from "../components/InputImage";
 
 const NewPost = () => {
   const methods = useForm();
-  const queryClient = useQueryClient()
+  const { setError } = methods;
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-   const postMutation = useMutation({
+  const postMutation = useMutation({
     mutationFn: async (data) => {
       const response = await postFetch.post("", data);
       return response.data;
@@ -23,11 +24,10 @@ const NewPost = () => {
     },
   });
 
-
   const onSubmit = async (data) => {
     const confirm = await Swal.fire({
       title: "Confirmar envio?",
-      text: "Deseja criar este novo post?",
+      text: "Deseja criar este novo post? Certifique-se de anotar o código de Edição para editar, ou deletar.",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sim, criar post",
@@ -42,7 +42,10 @@ const NewPost = () => {
 
     postMutation.mutate(data, {
       onSuccess: () => {
-        toast.success("Post criado com sucesso! 🌸", { id: toastId, duration: 2500 });
+        toast.success("Post criado com sucesso! 🌸", {
+          id: toastId,
+          duration: 2500,
+        });
         Swal.fire({
           icon: "success",
           title: "Post criado!",
@@ -51,10 +54,32 @@ const NewPost = () => {
         }).then(() => navigate("/"));
       },
       onError: (error) => {
-        toast.error(`Erro ao criar post: ${error.message || "Tente novamente."}`, {
-          id: toastId,
-          duration: 3000,
-        });
+        const apiErrors = error?.response?.data?.fields;
+
+        if (apiErrors && Array.isArray(apiErrors)) {
+          apiErrors.forEach((fieldError) => {
+            setError(fieldError.field, {
+              type: "server",
+              message: fieldError.message,
+            });
+          });
+
+          toast.error("Corrija os campos destacados", {
+            id: toastId,
+            duration: 3000,
+          });
+
+          return;
+        }
+
+        toast.error(
+          `Erro ao criar post: ${error.message || "Tente novamente."}`,
+          {
+            id: toastId,
+            duration: 3000,
+          }
+        );
+
         Swal.fire({
           icon: "error",
           title: "Erro!",
@@ -64,17 +89,14 @@ const NewPost = () => {
     });
   };
 
-
-
-
   return (
     <Box
       sx={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "80vh", 
-        bgcolor: "background.default", 
+        minHeight: "80vh",
+        bgcolor: "background.default",
         p: 2,
       }}
     >
@@ -94,15 +116,25 @@ const NewPost = () => {
               width: "100%",
             }}
           >
-            <RHFTextField name="title" label="Título" fullWidth />
-            <RHFTextField name="message" label="Mensagem" fullWidth />
+            <RHFTextField
+              name="title"
+              label="Título"
+              rules={{ required: "Campo necessário" }}
+              fullWidth
+            />
+            <RHFTextField
+              name="message"
+              label="Mensagem"
+              rules={{ required: "Campo necessário" }}
+              fullWidth
+            />
             <RHFTextField
               name="deleteCode"
               label="Código de Edição"
               fullWidth
+              rules={{ required: "Campo necessário" }}
             />
-            <InputImage id="image" name="imageBase64" required/>
-
+            <InputImage id="image" name="imageBase64" />
 
             <Button type="submit" variant="contained" size="large">
               Enviar

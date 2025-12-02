@@ -10,29 +10,37 @@ import { useEffect } from "react";
 import InputImage from "../components/InputImage";
 
 const Edit = () => {
-  const { id } = useParams(); // pega o ID do post
-  const methods = useForm();
+  const { id } = useParams(); 
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
-  // ✅ Buscar dados do post atual para preencher o formulário
+  const navigate = useNavigate();
+  const methods = useForm({
+  defaultValues: {
+    deleteCode: ""
+  }
+});
+
+  
+
   const { data: post, isLoading } = useQuery({
     queryKey: ["posts", id],
     queryFn: () => postFetch.get(`/${id}`).then(res => res.data),
     staleTime: 1000 * 60,
   });
 
-  // Atualiza o formulário quando os dados do post forem carregados
   useEffect(() => {
     if (post) {
-      methods.reset(post);
+      methods.reset({
+        ...post,
+        deleteCode: ""
+      });
+
     }
   }, [post, methods]);
 
-  // Mutação de edição
   const postMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await postFetch.put(`/${id}`, data); // inclui o ID na requisição
+      const response = await postFetch.put(`/${id}`, data); 
       return response.data;
     },
     onSuccess: () => {
@@ -107,10 +115,25 @@ const Edit = () => {
               width: "100%",
             }}
           >
-            <RHFTextField name="title" label="Título" fullWidth />
-            <RHFTextField name="message" label="Mensagem" fullWidth />
-            <RHFTextField name="deleteCode" label="Código de Edição" fullWidth />
-            <InputImage id="image" name="imageBase64" required/>
+          <RHFTextField
+              name="title"
+              label="Título"
+              rules={{ required: "Campo necessário" }}
+              fullWidth
+            />
+            <RHFTextField
+              name="message"
+              label="Mensagem"
+              rules={{ required: "Campo necessário" }}
+              fullWidth
+            />
+            <RHFTextField
+              name="deleteCode"
+              label="Código de Edição"
+              fullWidth
+              rules={{ required: "Campo necessário" }}
+            />
+            <InputImage id="image" name="imageBase64" />
 
             <Button type="submit" variant="contained" size="large">
               Salvar Alterações

@@ -64,8 +64,8 @@ const Posts = () => {
     }
   };
 
-  const handleEdit = async (id, deleteCode) => {
-      const { value: inputCode, isConfirmed } = await Swal.fire({
+  const handleEdit = async (id) => {
+    const { value: inputCode, isConfirmed } = await Swal.fire({
       title: "Confirmação necessária",
       text: "Digite o código de acesso:",
       input: "text",
@@ -79,23 +79,35 @@ const Posts = () => {
           Swal.showValidationMessage("⚠️ O código é obrigatório!");
           return false;
         }
-        if (value !== deleteCode) {
-          Swal.showValidationMessage("❌ Código inválido!");
-          return false;
-        }
         return value;
       },
     });
-  if (isConfirmed && inputCode === deleteCode) {
-  navigate(`/edit/${id}`); 
-}
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await postFetch.post(`${id}/check-code`, {
+        deleteCode: inputCode,
+      });
+
+      if (res.data.valid) {
+        navigate(`/edit/${id}`);
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Código incorreto",
+        text: err.response?.data?.error || "Acesso negado",
+      });
+    }
   };
-  
 
   if (postQuery.isLoading) return <h1>Loading...</h1>;
   if (postQuery.isError)
     return <h1>{postQuery.error?.message || "Erro ao buscar dados"}</h1>;
   if (postQuery.isFetching) return <h1>Procurando dados...</h1>;
+
+  
 
   const datas = postQuery.data || [];
 

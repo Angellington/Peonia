@@ -31,7 +31,20 @@ function App() {
                 gap: 2,
               }}
             >
-              <Typography variant="h3">TSUMIKI 🌙 </Typography>
+              <Link to='/' sx={{ textDecoration: 'none'  }}>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    cursor: "pointer",
+                    transition: "0.2s ease",
+                    "&:hover": {
+                      scale: 1.05,
+                    },
+                  }}
+                >
+                  TSUMIKI 🌙{" "}
+                </Typography>
+              </Link>
 
               <Box
                 sx={{
