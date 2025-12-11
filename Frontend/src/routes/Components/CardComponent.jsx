@@ -10,7 +10,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const CardComponent = ({ data, handleDelete, handleEdit }) => {
+const CardComponent = ({ data, handleDelete, handleEdit, ...props }) => {
   return (
     <Paper
       elevation={4}
@@ -29,7 +29,10 @@ const CardComponent = ({ data, handleDelete, handleEdit }) => {
         "&:hover": {
           transform: "translateY(-5px)",
         },
+        
       }}
+      {...props}
+
     >
       {/* Avatar e informações */}
       <Box

@@ -19,6 +19,7 @@ const paginate = (model) => {
                 limit,
                 total: count,
                 totalPages,
+                hasMore: page < totalPages,
                 results: rows,
             }
 

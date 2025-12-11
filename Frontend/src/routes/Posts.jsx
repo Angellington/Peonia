@@ -6,18 +6,47 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { Link, useNavigate } from "react-router-dom";
 import Edit from "./Edit";
+import usePostSearch from "../hook/usePostSearch";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const Posts = () => {
+  const [page, setPage] = useState(1);
+  const [allPosts, setAllPosts] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Get Data
-  const postQuery = useQuery({
-    queryKey: ["posts"],
-    queryFn: () => postFetch.get("").then((res) => res.data),
-    staleTime: 1000 * 60,
-    cacheTime: 1000 * 60 * 5,
-  });
+  // hooks
+  const { data, isLoading, isError, isFetching } = usePostSearch(page);
+
+  useEffect(() => {
+    if (data?.results) {
+      if (page === 1) {
+        setAllPosts(data.results);
+      } else {
+        setAllPosts((prev) => [...prev, ...data.results]);
+      }
+      setHasMore(data.hasMore !== false);
+    }
+  }, [data, page]);
+
+  const observer = useRef(null);
+  const lastPostRef = useCallback(
+    (node) => {
+      if (isFetching || !hasMore) return;
+
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore && !isFetching) {
+          setPage((prev) => prev + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isLoading, hasMore]
+  );
 
   // Delete Data
   const mutation = useMutation({
@@ -55,6 +84,8 @@ const Posts = () => {
       const toastId = toast.loading("Deletando...");
       mutation.mutate(id, {
         onSuccess: () => {
+          setPage(1);
+          setAllPosts([]);
           toast.success("Item deletado com sucesso!", { id: toastId });
         },
         onError: () => {
@@ -63,6 +94,11 @@ const Posts = () => {
       });
     }
   };
+
+  useEffect(() => {
+    setPage(1);
+    setAllPosts([]);
+  }, [mutation.isSuccess]);
 
   const handleEdit = async (id) => {
     const { value: inputCode, isConfirmed } = await Swal.fire({
@@ -102,14 +138,10 @@ const Posts = () => {
     }
   };
 
-  if (postQuery.isLoading) return <h1>Loading...</h1>;
-  if (postQuery.isError)
-    return <h1>{postQuery.error?.message || "Erro ao buscar dados"}</h1>;
-  if (postQuery.isFetching) return <h1>Procurando dados...</h1>;
+  if (isLoading) return <h1>Loading...</h1>;
+  if (isError) return <h1>{data.error?.message || "Erro ao buscar dados"}</h1>;
 
-  
-
-  const datas = postQuery.data.results || [];
+  const datas = data.results || [];
 
   return (
     <Box
@@ -122,18 +154,31 @@ const Posts = () => {
         gap: 3,
       }}
     >
-      {datas.length === 0
+      {allPosts.length === 0
         ? "Não há dados"
-        : datas.map((data, idx) => (
-            <CardComponent
-              key={idx}
-              data={data}
-              handleDelete={handleDelete}
-              handleEdit={handleEdit}
-            />
-          ))}
-          <p>Loading...</p>
-          <p>Error</p>
+        : allPosts.map((post, idx) => {
+            if (allPosts.length === idx + 1) {
+              return (
+                <CardComponent
+                  key={post}
+                  data={post}
+                  handleDelete={handleDelete}
+                  handleEdit={handleEdit}
+                  ref={lastPostRef}
+                />
+              );
+            } else {
+              return (
+                <CardComponent
+                  key={idx}
+                  data={post}
+                  handleDelete={handleDelete}
+                  handleEdit={handleEdit}
+                />
+              );
+            }
+          })}
+      {isFetching && <h1>Procurando dados...</h1>}
     </Box>
   );
 };
