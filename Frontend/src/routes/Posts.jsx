@@ -109,7 +109,7 @@ const Posts = () => {
 
   
 
-  const datas = postQuery.data || [];
+  const datas = postQuery.data.results || [];
 
   return (
     <Box
@@ -132,6 +132,8 @@ const Posts = () => {
               handleEdit={handleEdit}
             />
           ))}
+          <p>Loading...</p>
+          <p>Error</p>
     </Box>
   );
 };

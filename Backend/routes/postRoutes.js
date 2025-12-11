@@ -5,17 +5,15 @@ const FormData = require("form-data");
 const router = express.Router();
 require("dotenv").config();
 const bcrypt = require("bcrypt");
+const paginate = require("../middlewares/paginate");
 
 const SALT_ROUNDS = 10;
 
-router.get("/", async (req, res) => {
+router.get("/", paginate(Posts), async (req, res) => {
   try {
-    const posts = await Posts.findAll({
-      order: [["id", "DESC"]],
-    });
-    res.json(posts);
+    res.json(res.paginated);
+
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Erro ao buscar posts" });
   }
 });
@@ -96,7 +94,7 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { title, message, deleteCode, imageBase64 } = req.body;
-    
+
     if (!title && !message && !imageBase64) {
       return res.status(400).json({ error: "Nenhum dado para atualizar" });
     }
@@ -118,7 +116,7 @@ router.put("/:id", async (req, res) => {
 
     const updateData = {
       title,
-      message
+      message,
     };
 
     if (deleteCode) {
@@ -129,14 +127,14 @@ router.put("/:id", async (req, res) => {
       try {
         const formData = new FormData();
         formData.append("key", process.env.IMGBB_API_KEY);
-        formData.append("image", imageBase64.split(',')[1] || imageBase64); // Remove data URL prefix se existir
+        formData.append("image", imageBase64.split(",")[1] || imageBase64); // Remove data URL prefix se existir
 
         const response = await axios.post(
           "https://api.imgbb.com/1/upload",
           formData,
-          { 
+          {
             headers: formData.getHeaders(),
-            timeout: 10000 // timeout de 10 segundos
+            timeout: 10000, // timeout de 10 segundos
           }
         );
 
@@ -147,9 +145,9 @@ router.put("/:id", async (req, res) => {
         }
       } catch (imgError) {
         console.error("Erro ao fazer upload da imagem:", imgError.message);
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: "Falha ao fazer upload da imagem",
-          details: imgError.message 
+          details: imgError.message,
         });
       }
     }
@@ -158,21 +156,21 @@ router.put("/:id", async (req, res) => {
 
     res.json({
       success: true,
-      post: updatedPost
+      post: updatedPost,
     });
   } catch (err) {
     console.error("Erro ao atualizar post:", err.message);
-    
-    if (err.name === 'SequelizeValidationError') {
-      return res.status(400).json({ 
+
+    if (err.name === "SequelizeValidationError") {
+      return res.status(400).json({
         error: "Dados inválidos",
-        details: err.errors.map(e => e.message) 
+        details: err.errors.map((e) => e.message),
       });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: "Erro ao atualizar post",
-      details: err.message 
+      details: err.message,
     });
   }
 });
@@ -219,8 +217,7 @@ router.post("/:id/check-code", async (req, res) => {
   try {
     const { deleteCode } = req.body;
     const post = await Posts.findByPk(req.params.id);
-    console.log('===========', post)
-        if (!post) {
+    if (!post) {
       return res.status(404).json({ error: "Post não encontrado" });
     }
 
@@ -231,11 +228,9 @@ router.post("/:id/check-code", async (req, res) => {
     }
 
     return res.json({ valid: true });
-
   } catch (err) {
     res.status(500).json({ error: "Erro ao verificar código" });
   }
 });
-
 
 module.exports = router;
