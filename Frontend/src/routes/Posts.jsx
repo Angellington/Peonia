@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 import Edit from "./Edit";
 import usePostSearch from "../hook/usePostSearch";
 import { useCallback, useEffect, useRef, useState } from "react";
+import deleteSFXSound from '../sounds/sfx/hoeHit.wav'
+import { useGeneralSound } from "../hook/useGeneralSound";
 
 const Posts = () => {
   const [page, setPage] = useState(1);
@@ -32,6 +34,11 @@ const Posts = () => {
   }, [data, page]);
 
   const observer = useRef(null);
+
+  // Songs;
+  const { play: deleteSFX } = useGeneralSound(deleteSFXSound, 0.5)
+
+
   const lastPostRef = useCallback(
     (node) => {
       if (isFetching || !hasMore) return;
@@ -84,6 +91,7 @@ const Posts = () => {
       const toastId = toast.loading("Deletando...");
       mutation.mutate(id, {
         onSuccess: () => {
+          deleteSFX();
           setPage(1);
           setAllPosts([]);
           toast.success("Item deletado com sucesso!", { id: toastId });

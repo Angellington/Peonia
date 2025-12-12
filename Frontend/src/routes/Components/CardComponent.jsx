@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Paper,
   Box,
@@ -9,10 +9,36 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import useSound from "use-sound";
+import hoverCardSFX from "../../sounds/sfx/backpackIN.wav"
+import { useGeneralSound } from "../../hook/useGeneralSound";
+
+
 
 const CardComponent = ({ data, handleDelete, handleEdit, ...props }) => {
+  const { play: hoverSFX } = useGeneralSound(hoverCardSFX, 0.5);
+  
+  const paperRef = useRef(null);
+
+  useEffect(() => {
+    const currentPaper = paperRef.current;
+
+    if(currentPaper){
+      const handleMouseEnter = () => {
+        hoverSFX();
+      };
+
+      currentPaper.addEventListener("mouseenter", handleMouseEnter);
+
+      return () => {
+        currentPaper.removeEventListener("mouseenter", handleMouseEnter);
+      };
+    }
+  }, [hoverSFX]);
+
   return (
     <Paper
+      ref={paperRef}
       elevation={4}
       sx={{
         p: 2,

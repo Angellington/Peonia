@@ -3,18 +3,42 @@ import "./App.css";
 import Typography from "./components/Typography";
 import Button from "./components/Button";
 import { Routes, Route, Link, BrowserRouter } from "react-router-dom";
+import useSound from "use-sound";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Posts from "./routes/Posts";
 import NewPost from "./routes/NewPost";
 import Edit from "./routes/Edit";
+
+// Sounds
+import MonkeySong from './sounds/background/MonkeySong.mp3'
+import { useGeneralSound } from "./hook/useGeneralSound";
 
 function App() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [currentPage, setCurrentPage] = useState(<Posts />);
+  
+  const [hasInterected, setHasInteracted] = useState(false);
+
+  const { play: playMonkeySong } = useGeneralSound(MonkeySong, 0.3);
+
+  useEffect(() => {
+    const handleMouseEnter = () => {
+      if(!hasInterected){
+        playMonkeySong();
+        setHasInteracted(true);
+      }
+    }
+    document.documentElement.addEventListener("mouseenter", handleMouseEnter);
+
+    return () => {
+      document.documentElement.removeEventListener("mouseenter", handleMouseEnter)
+    }
+  }, [playMonkeySong, hasInterected])
+
 
   return (
     <>
