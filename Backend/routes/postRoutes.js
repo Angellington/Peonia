@@ -179,7 +179,9 @@ router.delete("/:id", async (req, res) => {
   try {
     const { deleteCode } = req.body;
     const { id } = req.params;
-
+    
+    console.log('deleteCode',deleteCode)
+    console.log('id',id)
     if (!deleteCode) {
       return res
         .status(400)
@@ -187,6 +189,7 @@ router.delete("/:id", async (req, res) => {
     }
 
     const post = await Posts.findByPk(id);
+
 
     if (!post) {
       return res.status(404).json({ error: "Post não encontrado" });

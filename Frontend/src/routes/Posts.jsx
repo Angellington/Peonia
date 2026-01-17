@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import CardComponent from "./Components/CardComponent";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import postFetch from "../api/postFetch";
@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Edit from "./Edit";
 import usePostSearch from "../hook/usePostSearch";
 import { useCallback, useEffect, useRef, useState } from "react";
-import deleteSFXSound from '../sounds/sfx/hoeHit.wav'
+import deleteSFXSound from "../sounds/sfx/hoeHit.wav";
 import { useGeneralSound } from "../hook/useGeneralSound";
 
 const Posts = () => {
@@ -36,8 +36,7 @@ const Posts = () => {
   const observer = useRef(null);
 
   // Songs;
-  const { play: deleteSFX } = useGeneralSound(deleteSFXSound, 0.5)
-
+  const { play: deleteSFX } = useGeneralSound(deleteSFXSound, 0.5);
 
   const lastPostRef = useCallback(
     (node) => {
@@ -52,27 +51,34 @@ const Posts = () => {
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore]
+    [isLoading, hasMore],
   );
 
-  // Delete Data
   const mutation = useMutation({
-    mutationFn: (id) => postFetch.delete(`/${id}`),
+    mutationFn: ({ id, deleteCode }) =>
+    postFetch.delete(`/${id}`, {
+      data: { deleteCode },
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries(["posts"]);
     },
     onError: (error) => {
-      toast.error(`Erro ao deletar: ${error.message || "Tente novamente."}`);
+      toast.error(
+        `Erro ao deletar: ${
+          error?.response?.data?.message || "Tente novamente."
+        }`,
+      );
     },
   });
-  const handleDelete = async (id, deleteCode) => {
+
+  const handleDelete = async (id) => {
     const { value: inputCode, isConfirmed } = await Swal.fire({
-      title: "Confirmação necessária",
-      text: "Digite o código de exclusão para confirmar:",
+      title: "Deletar",
+      text: "Digite o código para deletar:",
       input: "text",
       inputPlaceholder: "Ex: 12345",
       showCancelButton: true,
-      confirmButtonText: "Confirmar exclusão",
+      confirmButtonText: "Confirmar Acesso",
       cancelButtonText: "Cancelar",
       reverseButtons: true,
       preConfirm: (value) => {
@@ -80,27 +86,30 @@ const Posts = () => {
           Swal.showValidationMessage("⚠️ O código é obrigatório!");
           return false;
         }
-        if (value !== deleteCode) {
-          Swal.showValidationMessage("❌ Código inválido!");
-          return false;
-        }
         return value;
       },
     });
-    if (isConfirmed && inputCode === deleteCode) {
-      const toastId = toast.loading("Deletando...");
-      mutation.mutate(id, {
+
+    if (!isConfirmed) return;
+    console.log("id", id);
+    console.log("inputCode", inputCode);
+
+    const toastId = toast.loading("Deletando...");
+
+    mutation.mutate(
+      { id, deleteCode: inputCode },
+      {
         onSuccess: () => {
-          deleteSFX();
-          setPage(1);
-          setAllPosts([]);
           toast.success("Item deletado com sucesso!", { id: toastId });
         },
-        onError: () => {
-          toast.error("Erro ao deletar o item!", { id: toastId });
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message || "Código inválido",
+            { id: toastId }
+          );
         },
-      });
-    }
+      }
+    );
   };
 
   useEffect(() => {
@@ -146,10 +155,22 @@ const Posts = () => {
     }
   };
 
-  if (isLoading) return <h1>Loading...</h1>;
-  if (isError) return <h1>{data.error?.message || "Erro ao buscar dados"}</h1>;
+  if (isLoading)
+    return (
+      <Box
+        width="100%"
+        height="100vh"
+        display={"flex"}
+        justifyContent={"center"}
+        alignContent={"center"}
+      >
+        <CircularProgress />
+      </Box>
+    );
 
-  const datas = data.results || [];
+  const datas = data?.results || [];
+
+  if (isLoading && isFetching && !data) return <h1>Erro ao buscar dados</h1>;
 
   return (
     <Box

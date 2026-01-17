@@ -33,7 +33,6 @@ function App() {
       }
     }
     document.documentElement.addEventListener("mouseenter", handleMouseEnter);
-
     return () => {
       document.documentElement.removeEventListener("mouseenter", handleMouseEnter)
     }

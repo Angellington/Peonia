@@ -126,6 +126,8 @@ const NewPost = () => {
               name="message"
               label="Mensagem"
               rules={{ required: "Campo necessário" }}
+              multiline
+              rows={4}
               fullWidth
             />
             <RHFTextField
